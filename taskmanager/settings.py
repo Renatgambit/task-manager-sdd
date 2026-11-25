@@ -54,9 +54,9 @@ if os.getenv("DB_HOST"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("POSTGRES_DB", "taskflow"),
-            "USER": os.getenv("POSTGRES_USER", "taskflow"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "taskflow-local-only"),
+            "NAME": os.getenv("POSTGRES_DB", "examprep"),
+            "USER": os.getenv("POSTGRES_USER", "examprep"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "examprep-local-only"),
             "HOST": os.getenv("DB_HOST", "db"),
             "PORT": os.getenv("DB_PORT", "5432"),
             "CONN_MAX_AGE": 60,
@@ -83,7 +83,7 @@ else:
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "taskflow-local-cache",
+            "LOCATION": "examprep-local-cache",
             "TIMEOUT": 60,
         }
     }

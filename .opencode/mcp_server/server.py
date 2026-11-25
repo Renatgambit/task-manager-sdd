@@ -1,4 +1,4 @@
-"""Read-only MCP tools for inspecting TaskFlow's SDD artifacts."""
+"""Read-only MCP tools for inspecting ExamPrep's SDD artifacts."""
 
 from pathlib import Path
 
@@ -12,7 +12,7 @@ ARTIFACTS = {
     "decisions": "docs/DECISIONS.md",
 }
 
-mcp = FastMCP("taskflow-docs")
+mcp = FastMCP("examprep-docs")
 
 
 @mcp.tool()
@@ -28,7 +28,7 @@ def get_sdd_status() -> dict[str, object]:
             if line.startswith("- [ ] ")
         ]
     return {
-        "project": "TaskFlow",
+        "project": "ExamPrep",
         "workflow": "Specification -> Plan -> Tasks -> Implementation -> Verification",
         "artifacts": files,
         "pending_count": len(pending),

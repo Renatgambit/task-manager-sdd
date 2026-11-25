@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-taskflow}
-      POSTGRES_USER: ${POSTGRES_USER:-taskflow}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-taskflow-local-only}
+      POSTGRES_DB: ${POSTGRES_DB:-examprep}
+      POSTGRES_USER: ${POSTGRES_USER:-examprep}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-examprep-local-only}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

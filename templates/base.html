@@ -4,12 +4,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}TaskFlow{% endblock %}</title>
+  <title>{% block title %}ExamPrep{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
 <body>
-  <header class="topbar"><a class="brand" href="{% url 'task_list' %}"><span class="brand-mark">T</span> TaskFlow</a><a class="button button-light" href="{% url 'task_create' %}">＋ Новая задача</a></header>
+  <header class="topbar"><a class="brand" href="{% url 'card_list' %}"><span class="brand-mark">E</span> ExamPrep</a><a class="button button-light" href="{% url 'card_create' %}">＋ Новая карточка</a></header>
   <main class="container">{% block content %}{% endblock %}</main>
-  <footer class="footer">TaskFlow · учебный проект на Django</footer>
+  <footer class="footer">ExamPrep · подготовка к экзаменам</footer>
 </body>
 </html>

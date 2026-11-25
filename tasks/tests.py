@@ -1,64 +1,93 @@
-from django.core.cache import cache
+from datetime import timedelta
+
 from django.contrib.staticfiles import finders
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
-from .models import Task
+from .models import StudyCard
 
 
-class TaskFlowTests(TestCase):
+class ExamPrepTests(TestCase):
     def setUp(self):
         cache.clear()
 
-    def test_task_defaults(self):
-        task = Task.objects.create(title="Сдать отчёт")
-        self.assertEqual(task.status, Task.Status.TODO)
-        self.assertEqual(task.priority, Task.Priority.MEDIUM)
+    def test_card_defaults(self):
+        card = StudyCard.objects.create(question="Что такое SDD?", answer="Разработка от спецификации")
+        self.assertEqual(card.subject, "Общий предмет")
+        self.assertEqual(card.status, StudyCard.Status.NEW)
+        self.assertEqual(card.difficulty, StudyCard.Difficulty.MEDIUM)
 
     def test_stylesheet_is_discoverable(self):
         self.assertIsNotNone(finders.find("css/app.css"))
 
-    def test_dashboard_shows_task_and_cached_counts(self):
-        Task.objects.create(title="Первая задача")
-        response = self.client.get(reverse("task_list"))
+    def test_dashboard_shows_card_and_cached_counts(self):
+        StudyCard.objects.create(question="Первая карточка", answer="Ответ", subject="История")
+        response = self.client.get(reverse("card_list"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Первая задача")
+        self.assertContains(response, "Первая карточка")
         self.assertEqual(response.context["stats"]["total"], 1)
+        self.assertEqual(response.context["stats"]["subjects"], 1)
 
-    def test_create_task(self):
-        response = self.client.post(reverse("task_create"), {"title": "Новая", "status": "todo", "priority": "high"})
-        self.assertEqual(Task.objects.count(), 1)
-        self.assertRedirects(response, reverse("task_detail", args=[Task.objects.first().pk]))
-
-    def test_edit_task(self):
-        task = Task.objects.create(title="Черновик")
+    def test_create_card(self):
         response = self.client.post(
-            reverse("task_update", args=[task.pk]),
-            {"title": "Готовый заголовок", "description": "Обновлено", "status": "in_progress", "priority": "high", "due_date": ""},
+            reverse("card_create"),
+            {"subject": "Биология", "topic": "Клетка", "question": "Что такое ДНК?", "answer": "Носитель наследственной информации", "status": "new", "difficulty": "high", "next_review": ""},
         )
-        task.refresh_from_db()
-        self.assertEqual(task.title, "Готовый заголовок")
-        self.assertEqual(task.status, Task.Status.IN_PROGRESS)
-        self.assertRedirects(response, reverse("task_detail", args=[task.pk]))
+        self.assertEqual(StudyCard.objects.count(), 1)
+        self.assertRedirects(response, reverse("card_detail", args=[StudyCard.objects.first().pk]))
 
-    def test_advance_task_status_and_invalidate_dashboard_cache(self):
-        task = Task.objects.create(title="Проверка")
-        cache.set("taskflow:dashboard:v1", {"total": 1, "active": 1, "done": 0})
-        response = self.client.post(reverse("task_advance", args=[task.pk]))
-        task.refresh_from_db()
-        self.assertEqual(task.status, Task.Status.IN_PROGRESS)
-        self.assertIsNone(cache.get("taskflow:dashboard:v1"))
-        self.assertRedirects(response, reverse("task_detail", args=[task.pk]))
+    def test_edit_card(self):
+        card = StudyCard.objects.create(question="Черновик", answer="Ответ")
+        response = self.client.post(
+            reverse("card_update", args=[card.pk]),
+            {"subject": "Математика", "topic": "Алгебра", "question": "Обновлённый вопрос", "answer": "Обновлённый ответ", "status": "review", "difficulty": "high", "next_review": ""},
+        )
+        card.refresh_from_db()
+        self.assertEqual(card.question, "Обновлённый вопрос")
+        self.assertEqual(card.status, StudyCard.Status.REVIEW)
+        self.assertRedirects(response, reverse("card_detail", args=[card.pk]))
+
+    def test_mark_known_invalidates_dashboard_cache(self):
+        card = StudyCard.objects.create(question="Проверка", answer="Ответ")
+        cache.set("examprep:dashboard:v1", {"total": 1, "new": 1, "known": 0})
+        response = self.client.post(reverse("review_card", args=[card.pk]), {"action": "known"})
+        card.refresh_from_db()
+        self.assertEqual(card.status, StudyCard.Status.KNOWN)
+        self.assertIsNone(cache.get("examprep:dashboard:v1"))
+        self.assertRedirects(response, reverse("study_session"))
 
     def test_search_and_status_filter(self):
-        Task.objects.create(title="Купить молоко")
-        Task.objects.create(title="Написать код", status=Task.Status.DONE)
-        response = self.client.get(reverse("task_list"), {"q": "код", "status": "done"})
-        self.assertContains(response, "Написать код")
-        self.assertNotContains(response, "Купить молоко")
+        StudyCard.objects.create(question="Клетка", answer="Биологический вопрос", subject="Биология")
+        StudyCard.objects.create(question="Производная", answer="Алгебраический вопрос", subject="Математика", status=StudyCard.Status.KNOWN)
+        response = self.client.get(reverse("card_list"), {"q": "производная", "status": "known", "subject": "Математика"})
+        self.assertContains(response, "Производная")
+        self.assertNotContains(response, "Клетка")
 
     def test_delete_requires_post(self):
-        task = Task.objects.create(title="Удаляемая")
-        response = self.client.post(reverse("task_delete", args=[task.pk]))
-        self.assertRedirects(response, reverse("task_list"))
-        self.assertFalse(Task.objects.filter(pk=task.pk).exists())
+        card = StudyCard.objects.create(question="Удаляемая карточка", answer="Ответ")
+        response = self.client.post(reverse("card_delete", args=[card.pk]))
+        self.assertRedirects(response, reverse("card_list"))
+        self.assertFalse(StudyCard.objects.filter(pk=card.pk).exists())
+
+    def test_study_hides_answer_until_requested(self):
+        StudyCard.objects.create(question="Первый закон Ньютона?", answer="Закон инерции", subject="Физика")
+        response = self.client.get(reverse("study_session"))
+        self.assertContains(response, "Первый закон Ньютона?")
+        self.assertNotContains(response, "Закон инерции")
+        response = self.client.get(reverse("study_session"), {"card": StudyCard.objects.first().pk, "show": "1"})
+        self.assertContains(response, "Закон инерции")
+
+    def test_again_action_schedules_card_for_tomorrow(self):
+        card = StudyCard.objects.create(question="Повторить", answer="Ответ", subject="Физика")
+        response = self.client.post(reverse("review_card", args=[card.pk]), {"action": "again", "subject": "Физика"})
+        card.refresh_from_db()
+        self.assertEqual(card.status, StudyCard.Status.REVIEW)
+        self.assertEqual(card.next_review, timezone.localdate() + timedelta(days=1))
+        self.assertIn("skip", response.url)
+
+    def test_future_review_card_is_not_due(self):
+        StudyCard.objects.create(question="Не сегодня", answer="Ответ", status=StudyCard.Status.REVIEW, next_review=timezone.localdate() + timedelta(days=1))
+        response = self.client.get(reverse("study_session"))
+        self.assertIsNone(response.context["card"])

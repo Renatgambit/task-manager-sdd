@@ -1,10 +1,10 @@
 from django.contrib import admin
 
-from .models import Task
+from .models import StudyCard
 
 
-@admin.register(Task)
-class TaskAdmin(admin.ModelAdmin):
-    list_display = ("title", "status", "priority", "due_date", "updated_at")
-    list_filter = ("status", "priority")
-    search_fields = ("title", "description")
+@admin.register(StudyCard)
+class StudyCardAdmin(admin.ModelAdmin):
+    list_display = ("question", "subject", "topic", "status", "difficulty", "next_review")
+    list_filter = ("subject", "status", "difficulty")
+    search_fields = ("question", "answer", "subject", "topic")

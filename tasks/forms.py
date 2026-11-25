@@ -1,14 +1,16 @@
 from django import forms
 
-from .models import Task
+from .models import StudyCard
 
 
-class TaskForm(forms.ModelForm):
+class StudyCardForm(forms.ModelForm):
     class Meta:
-        model = Task
-        fields = ["title", "description", "status", "priority", "due_date"]
+        model = StudyCard
+        fields = ["subject", "topic", "question", "answer", "difficulty", "status", "next_review"]
         widgets = {
-            "title": forms.TextInput(attrs={"placeholder": "Например, подготовить отчёт"}),
-            "description": forms.Textarea(attrs={"rows": 4, "placeholder": "Подробности (необязательно)"}),
-            "due_date": forms.DateInput(attrs={"type": "date"}),
+            "subject": forms.TextInput(attrs={"placeholder": "Например, История"}),
+            "topic": forms.TextInput(attrs={"placeholder": "Например, Древняя Русь"}),
+            "question": forms.TextInput(attrs={"placeholder": "Напишите вопрос для самопроверки"}),
+            "answer": forms.Textarea(attrs={"rows": 5, "placeholder": "Запишите правильный ответ"}),
+            "next_review": forms.DateInput(attrs={"type": "date"}),
         }

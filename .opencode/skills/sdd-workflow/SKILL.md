@@ -1,9 +1,9 @@
 ---
 name: SDD Workflow
-description: Use when planning or changing TaskFlow; keep specification, plan, tasks, implementation, and tests aligned using SDD.
+description: Use when planning or changing ExamPrep; keep specification, plan, tasks, implementation, and tests aligned using SDD.
 ---
 
-# TaskFlow SDD workflow
+# ExamPrep SDD workflow
 
 1. Read `AGENTS.md`, `docs/SPEC.md`, `docs/PLAN.md`, and `docs/TASKS.md` before implementing a feature.
 2. Restate which acceptance criteria the request affects. If behavior is not specified, ask before inventing product scope.
@@ -14,7 +14,8 @@ description: Use when planning or changing TaskFlow; keep specification, plan, t
 
 ## Project invariants
 
-- Task mutations use POST and Django CSRF protection.
-- Search covers task title and description; status filters use declared model choices.
-- Any Task save or delete invalidates `taskflow:dashboard:v1`.
+- Card mutations use POST and Django CSRF protection.
+- Search covers subject, topic, question, and answer; filters use declared model choices.
+- Any StudyCard save or delete invalidates `examprep:dashboard:v1`.
+- Only new and due review cards enter a study session; repeat-later moves the card to the next day.
 - MCP tools are read-only and must resolve paths inside the project root.
