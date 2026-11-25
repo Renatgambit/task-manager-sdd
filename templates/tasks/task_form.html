@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }} — TaskFlow{% endblock %}
+{% block content %}
+<div class="form-wrap"><a class="back-link" href="{% if task %}{% url 'task_detail' task.pk %}{% else %}{% url 'task_list' %}{% endif %}">← Назад</a><div class="panel"><p class="eyebrow">ЗАДАЧА</p><h1>{{ heading }}</h1><form method="post" class="task-form">{% csrf_token %}{% for field in form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>{% endfor %}<div class="form-actions"><button class="button button-primary" type="submit">Сохранить</button><a class="button button-light" href="{% url 'task_list' %}">Отмена</a></div></form></div></div>
+{% endblock %}
